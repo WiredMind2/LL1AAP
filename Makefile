@@ -1,6 +1,10 @@
 CXX = g++
 CXXFLAGS = -Wall -g
 
+# Debug parameter
+DEBUG ?= 0
+CXXFLAGS += -DDEBUG=$(DEBUG)
+
 TARGET = main
 SRCS = main.cpp lexer.cpp symbole.cpp automaton.cpp
 OBJS = $(SRCS:.cpp=.o)

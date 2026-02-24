@@ -7,6 +7,11 @@
 #include <string>
 #include "symbole.h"
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+const bool DEBUG_ENABLED = (DEBUG != 0);
+
 extern const std::string IdentificateursLabels[];
 
 typedef std::deque<Identificateurs> Pile;

@@ -4,10 +4,7 @@
 #include "automaton.h"
 using namespace std;
 
-// Array of string labels for the different symbols (terminals and non-terminals) used in the grammar
-// (Moved to symbole.h)
-
-// Checks if a transition exists in the parsing table for a given state 'i' and lookahead 'j'
+// Verifie si une transition existe dans la table d'analyse pour un etat 'i' et un lookahead 'j'
 bool Existe(Transitions &t, Identificateurs i, Identificateurs j)
 {
     return (t.find(i) != t.end()) and
@@ -19,6 +16,8 @@ struct Rule {
     int rhsLen;
 };
 
+// Definis les regles de reduction: lhs est le non-terminal reduit et 
+//   rhsLen est le nombre de symboles a depiler pour appliquer la reduction
 const Rule rules[] = {
     {ERREUR, 0}, 
     {E, 1},      // R1: E' -> E
@@ -49,45 +48,47 @@ bool automaton(const std::deque<SymbolValue> &mot,
         Identificateurs a = etat.alire.front().id;
         int valA = etat.alire.front().value;
 
-        cout << "Etat : " << IdentificateursLabels[s] << " | Lookahead : " << IdentificateursLabels[a] << endl;
+        if (DEBUG_ENABLED) cout << "Transition : " << IdentificateursLabels[s] << " -> " << IdentificateursLabels[a] << endl;
 
         if (!Existe(transitions, s, a))
         {
-            cout << "Transition non trouvee pour l'etat " << IdentificateursLabels[s] << " et le symbole " << IdentificateursLabels[a] << endl;
+            if (DEBUG_ENABLED) cout << "Transition non trouvee pour l'etat " << IdentificateursLabels[s] << " et le symbole " << IdentificateursLabels[a] << endl;
             return false;
         }
 
         Identificateurs target = transitions[s][a];
 
         // ACCEPTATION
-        if (target == FIN || target == END)
+        if (target == FIN)
         {
-             cout << "Succes : Mot reconnu" << endl;
+             if (DEBUG_ENABLED) cout << "Succes : Mot reconnu" << endl;
              if (!etat.valStack.empty()) {
                  cout << "Resultat : " << etat.valStack.front() << endl;
              }
              return true;
         }
 
-        // DECALAGE (SHIFT)
+        // DECALAGE
         if (target >= S0 && target <= S9)
         {
-            cout << "Decalage " << IdentificateursLabels[target] << endl;
+            if (DEBUG_ENABLED) cout << "Decalage " << IdentificateursLabels[target] << endl;
             etat.pile.push_front(a);      
             etat.pile.push_front(target); 
             etat.valStack.push_front(valA);
             etat.alire.pop_front();       
         }
-        // REDUCTION (REDUCE)
+        // REDUCTION
         else if (target >= R1 && target <= R5)
         {
             int ruleIndex = target - R1 + 1;
             Rule r = rules[ruleIndex];
-            cout << "Reduction Regle " << ruleIndex << " (LHS: " << IdentificateursLabels[r.lhs] << ", Longueur: " << r.rhsLen << ")" << endl;
+            
+            if (DEBUG_ENABLED) cout << "Regle Reduction " << ruleIndex << " (LHS: " << IdentificateursLabels[r.lhs] << ", " << r.rhsLen << " operateurs)" << endl;
 
             // Recuperation des valeurs associees aux symboles reduits
             std::deque<int> ruleVals;
             for (int i = 0; i < r.rhsLen; i++) {
+                // Recuperer la valeur du symbole au sommet de la pile
                 ruleVals.push_front(etat.valStack.front());
                 etat.valStack.pop_front();
 
@@ -107,17 +108,16 @@ bool automaton(const std::deque<SymbolValue> &mot,
                 case 5: res = ruleVals[0]; break; // E -> val
             }
 
-            // Regarder l'etat maintenant au sommet de la pile
+            // Regarder l'etat maintenant au sommet de la pile (avant la reduction)
             Identificateurs s_prev = etat.pile.front();
             
-            // Recherche de la transition GOTO(s_prev, lhs)
+            // Recherche de la transition post reduction(s_prev, lhs)
             if (!Existe(transitions, s_prev, r.lhs)) {
-                cout << "Erreur GOTO : Pas de transition pour le non-terminal " << IdentificateursLabels[r.lhs] << " dans l'etat " << IdentificateursLabels[s_prev] << endl;
+                // Erreur post reduction : Pas de transition pour le non-terminal r.lhs dans l'etat s_prev
                 return false;
             }
 
             Identificateurs s_next = transitions[s_prev][r.lhs];
-            cout << "Goto " << IdentificateursLabels[s_next] << endl;
             
             etat.pile.push_front(r.lhs);   
             etat.pile.push_front(s_next);  
@@ -125,10 +125,10 @@ bool automaton(const std::deque<SymbolValue> &mot,
         }
         else 
         {
-            cout << "Action inconnue" << endl;
+            if (DEBUG_ENABLED) cout << "Action inconnue" << endl;
             return false;
         }
         
-        cout << "Pile : " << etat.pile << endl;
+        if (DEBUG_ENABLED) cout << "Pile : " << etat.pile << endl;
     }
 }

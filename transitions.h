@@ -1,5 +1,8 @@
 #include "automaton.h"
 
+Transitions trans;
+#define Trans(x, y, z) trans[Identificateurs(x)][Identificateurs(y)] = Identificateurs z
+
 Trans(S0, INT, (S3));
 Trans(S0, OPENPAR, (S2));
 Trans(S0, E, (S1));
@@ -43,3 +46,5 @@ Trans(S9, PLUS, (R4)); // reduction E -> ( E )
 Trans(S9, MULT, (R4)); 
 Trans(S9, CLOSEPAR, (R4)); 
 Trans(S9, FIN, (R4));
+
+#undef Trans
