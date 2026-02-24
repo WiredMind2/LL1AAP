@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -Wall -g
 
 TARGET = main
-SRCS = main.cpp lexer.cpp symbole.cpp
+SRCS = main.cpp lexer.cpp symbole.cpp automaton.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 ifeq ($(OS),Windows_NT)

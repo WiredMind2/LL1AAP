@@ -64,9 +64,9 @@ bool LL1AAP(const Pile &mot,
     etat.pile.push_front(axiome);
     etat.alire = mot;
     Identificateurs a, b;
-    if (etat.alire.back() != end_)
+    if (etat.alire.back() != FIN)
     {
-        etat.alire.push_back(end_);
+        etat.alire.push_back(FIN);
     }
     while (!etat.pile.empty())
     {
@@ -101,29 +101,4 @@ bool LL1AAP(const Pile &mot,
         cout << "A lire : " << etat.alire << endl;
     }
     return true;
-}
-int main(void)
-{
-    Transitions trans;
-    Pile epsilon;
-#define Trans(x, y, z) trans[x][y] = mkPile z
-#define ETrans(x, y) trans[x][y] = epsilon
-#include "transitions.h"
-#undef Trans
-    Pile mot;
-    mot.push_back(id_);
-    mot.push_back(mult_);
-    mot.push_back(nb_);
-    mot.push_back(plus_);
-    mot.push_back(id_);
-    // mot.push_back(open_);
-    if (LL1AAP(mot, trans, E_))
-    {
-        cout << "Mot reconnu" << endl;
-    }
-    else
-    {
-        cout << "Mot non reconnu" << endl;
-    }
-    return 0;
 }
