@@ -65,80 +65,130 @@ bool Existe(Transitions &t, Identificateurs i, Identificateurs j)
            (t[i].find(j) != t[i].end());
 }
 
-// Main function for the LL(1) predictive parser (Analyseur Automate à Pile)
-// Takes the input word (mot), the parsing table (transitions), and the start symbol (axiome)
-bool LL1AAP(const Pile &mot,
+struct Rule {
+    Identificateurs lhs;
+    int rhsLen;
+};
+
+const Rule rules[] = {
+    {ERREUR, 0}, 
+    {E, 1},      // R1: E' -> E
+    {E, 3},      // R2: E -> E + E
+    {E, 3},      // R3: E -> E * E
+    {E, 3},      // R4: E -> ( E )
+    {E, 1}       // R5: E -> val
+};
+
+// Fonction principale pour l'analyseur Decalage-Reduction (LR)
+bool LL1AAP(const std::deque<SymbolValue> &mot,
             Transitions &transitions,
             Identificateurs axiome)
 {
     Etat etat;
-    // Initialize the stack with the start symbol
-    etat.pile.push_front(axiome);
-    // Initialize the input queue with the word to parse
+    // etat initial de l'automate
+    etat.pile.push_front(S0);
+    
     etat.alire = mot;
-    Identificateurs a, b;
-    
-    // Ensure the input ends with the end-of-file/end-of-input marker (FIN)
-    if (etat.alire.back() != FIN)
+    if (etat.alire.empty() || etat.alire.back().id != FIN)
     {
-        etat.alire.push_back(FIN);
+        etat.alire.push_back({FIN, 0});
     }
-    
-    // Loop until the stack is empty
-    while (!etat.pile.empty())
+
+    while (true)
     {
-        a = etat.pile.front(); // Top of the stack (expected symbol)
-        b = etat.alire.front(); // Front of the input (current symbol being read)
-        
-        // If the top of the stack matches the current input symbol
-        if (a == b)
+        Identificateurs s = etat.pile.front(); 
+        Identificateurs a = etat.alire.front().id;
+        int valA = etat.alire.front().value;
+
+        cout << "Etat : " << IdentificateursLabels[s] << " | Lookahead : " << IdentificateursLabels[a] << endl;
+
+        if (!Existe(transitions, s, a))
         {
-            cout << "Lecture de " << IdentificateursLabels[a] << endl;
-            // Consume the symbol from both the stack and the input
-            etat.pile.pop_front();
-            etat.alire.pop_front();
-        }
-        // If there is no valid transition in the parsing table for (a, b)
-        else if (!Existe(transitions, a, b))
-        {
-            cout << "Transition non trouvée" << endl;
-            // Syntax error: reject the input
-            // si on veut juste rejeter le symbole
-            // on peut faire ça
-            // etat.pile.pop_front();
+            cout << "Transition non trouvee pour l'etat " << IdentificateursLabels[s] << " et le symbole " << IdentificateursLabels[a] << endl;
             return false;
         }
-        // If a valid transition exists
-        else
+
+        Pile action = transitions[s][a];
+
+        if (action.empty())
         {
-            // Pop the non-terminal from the stack
-            etat.pile.pop_front();
-            
-            // Determine transition type: shift or reduce
-            const Pile &rhs = transitions[a][b];
-            if (rhs.empty())
-            {
-                // Epsilon production (empty RHS) = reduction
-                cout << "Reduction (epsilon) : " << IdentificateursLabels[a] << " -> ε" << endl;
+            if (a == FIN) {
+                cout << "Succes : Mot reconnu" << endl;
+                if (!etat.valStack.empty()) {
+                    cout << "Resultat : " << etat.valStack.front() << endl;
+                }
+                return true;
             }
-            else (rhs.size() == 1 && rhs.front() == b)
-            {
-                // Single terminal matching lookahead = shift
-                cout << "Shift : " << IdentificateursLabels[a] << " -> " << IdentificateursLabels[b] << endl;
-            }
-            
-            // Push the right-hand side of the production rule onto the stack in reverse order
-            // so that the first symbol of the production ends up on top of the stack
-            Pile::const_reverse_iterator i;
-            for (i = transitions[a][b].rbegin(); i != transitions[a][b].rend(); i++)
-            {
-                etat.pile.push_front(*i);
-            }
+            return false;
         }
-        // Print the current state of the stack and the remaining input
+
+        Identificateurs target = action.front();
+
+        // DeCALAGE (SHIFT)
+        if (target >= S0 && target <= S9)
+        {
+            cout << "Decalage " << IdentificateursLabels[target] << endl;
+            etat.pile.push_front(a);      
+            etat.pile.push_front(target); 
+            etat.valStack.push_front(valA);
+            etat.alire.pop_front();       
+        }
+        // ReDUCTION (REDUCE)
+        else if (target >= R1 && target <= R5)
+        {
+            int ruleIndex = target - R1 + 1;
+            Rule r = rules[ruleIndex];
+            cout << "Reduction Regle " << ruleIndex << " (LHS: " << IdentificateursLabels[r.lhs] << ", Longueur: " << r.rhsLen << ")" << endl;
+
+            // Recuperation des valeurs associees aux symboles reduits
+            std::deque<int> ruleVals;
+            for (int i = 0; i < r.rhsLen; i++) {
+                ruleVals.push_front(etat.valStack.front());
+                etat.valStack.pop_front();
+            }
+
+            // Calcul semantique selon la regle
+            int res = 0;
+            switch(ruleIndex) {
+                case 1: res = ruleVals[0]; break; // E' -> E
+                case 2: res = ruleVals[0] + ruleVals[2]; break; // E -> E + E
+                case 3: res = ruleVals[0] * ruleVals[2]; break; // E -> E * E
+                case 4: res = ruleVals[1]; break; // E -> ( E )
+                case 5: res = ruleVals[0]; break; // E -> val
+            }
+
+            // Depilement de 2 * rhsLen (paires etat/symbole)
+            for (int i = 0; i < 2 * r.rhsLen; ++i)
+            {
+                if (etat.pile.empty()) return false;
+                etat.pile.pop_front();
+            }
+
+            // Regarder l'etat maintenant au sommet de la pile
+            Identificateurs s_prev = etat.pile.front();
+            
+            // Recherche de la transition GOTO(s_prev, lhs)
+            if (!Existe(transitions, s_prev, r.lhs)) {
+                cout << "Erreur GOTO : Pas de transition pour le non-terminal " << IdentificateursLabels[r.lhs] << " dans l'etat " << IdentificateursLabels[s_prev] << endl;
+                return false;
+            }
+
+            Identificateurs s_next = transitions[s_prev][r.lhs].front();
+            cout << "Goto " << IdentificateursLabels[s_next] << endl;
+            
+            etat.pile.push_front(r.lhs);   
+            etat.pile.push_front(s_next);  
+            etat.valStack.push_front(res);
+        }
+        else if (target == FIN || target == END)
+        {
+             cout << "Succes : Mot reconnu" << endl;
+             if (!etat.valStack.empty()) {
+                 cout << "Resultat : " << etat.valStack.front() << endl;
+             }
+             return true;
+        }
+        
         cout << "Pile : " << etat.pile << endl;
-        cout << "A lire : " << etat.alire << endl;
     }
-    // If the stack is empty, the input has been successfully parsed
-    return true;
 }

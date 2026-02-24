@@ -6,11 +6,11 @@ int main(void)
 {
    Transitions trans;
    Pile epsilon;
-#define Trans(x, y, z) trans[x][y] = mkPile z
-#define ETrans(x, y) trans[x][y] = epsilon
+#define Trans(x, y, z) trans[Identificateurs(x)][Identificateurs(y)] = mkPile z
+#define ETrans(x, y) trans[Identificateurs(x)][Identificateurs(y)] = epsilon
 #include "transitions.h"
 #undef Trans
-   Pile mot;
+   std::deque<SymbolValue> mot;
 
    string chaine("(1+34)*123");
 
@@ -21,17 +21,17 @@ int main(void)
    {
       s->Affiche();
       cout << endl;
-      mot.push_back((Identificateurs)(int)*s);
+      mot.push_back({(Identificateurs)(int)*s, s->getValeur()});
       l.Avancer();
    }
 
    if (LL1AAP(mot, trans, S0))
    {
-      cout << "Mot reconnu" << endl;
+      cout << "Succes : Expression valide" << endl;
    }
    else
    {
-      cout << "Mot non reconnu" << endl;
+      cout << "Erreur : Expression invalide" << endl;
    }
    return 0;
 }

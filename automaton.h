@@ -16,10 +16,16 @@ Pile mkPile(Identificateurs t1, Identificateurs t2);
 Pile mkPile(Identificateurs t);
 Pile mkPile();
 
+struct SymbolValue {
+    Identificateurs id;
+    int value;
+};
+
 struct Etat
 {
     Pile pile;
-    Pile alire;
+    std::deque<int> valStack; 
+    std::deque<SymbolValue> alire;
 };
 
 std::ostream &operator<<(std::ostream &os, const Pile &p);
@@ -30,6 +36,6 @@ typedef std::map<Identificateurs, std::map<Identificateurs, Pile>> Transitions;
 
 bool Existe(Transitions &t, Identificateurs i, Identificateurs j);
 
-bool LL1AAP(const Pile &mot, Transitions &transitions, Identificateurs axiome);
+bool LL1AAP(const std::deque<SymbolValue> &mot, Transitions &transitions, Identificateurs axiome);
 
 #endif // ANALYSEUR_H
