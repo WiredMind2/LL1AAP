@@ -113,7 +113,19 @@ bool LL1AAP(const Pile &mot,
         {
             // Pop the non-terminal from the stack
             etat.pile.pop_front();
-            cout << "Transition" << endl;
+            
+            // Determine transition type: shift or reduce
+            const Pile &rhs = transitions[a][b];
+            if (rhs.empty())
+            {
+                // Epsilon production (empty RHS) = reduction
+                cout << "Reduction (epsilon) : " << IdentificateursLabels[a] << " -> ε" << endl;
+            }
+            else (rhs.size() == 1 && rhs.front() == b)
+            {
+                // Single terminal matching lookahead = shift
+                cout << "Shift : " << IdentificateursLabels[a] << " -> " << IdentificateursLabels[b] << endl;
+            }
             
             // Push the right-hand side of the production rule onto the stack in reverse order
             // so that the first symbol of the production ends up on top of the stack
