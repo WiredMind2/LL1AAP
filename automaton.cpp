@@ -7,58 +7,7 @@ using namespace std;
 // Array of string labels for the different symbols (terminals and non-terminals) used in the grammar
 // (Moved to symbole.h)
 
-// Helper functions to create a stack (Pile) from 1, 2, or 3 symbols.
-// These are typically used to push the right-hand side of a production rule onto the stack.
-Pile mkPile(Identificateurs t1, Identificateurs t2, Identificateurs t3)
-{
-    Pile p;
-    p.push_front(t3);
-    p.push_front(t2);
-    p.push_front(t1);
-    return p;
-}
-Pile mkPile(Identificateurs t1, Identificateurs t2)
-{
-    Pile p;
-    p.push_front(t2);
-    p.push_front(t1);
-    return p;
-}
-Pile mkPile(Identificateurs t)
-{
-    Pile p;
-    p.push_front(t);
-    return p;
-}
-Pile mkPile()
-{
-    Pile p;
-    return p;
-}
-
-// Overload the << operator to easily print the contents of a Pile (stack or input queue)
-ostream &operator<<(ostream &os,
-                    const Pile &p)
-{
-    Pile::const_iterator i;
-    for (i = p.begin(); i != p.end(); i++)
-    {
-        os << IdentificateursLabels[*i] << " ";
-    }
-    return os;
-}
-
-// Function to print a Pile to standard output
-void AffichePile(Pile p)
-{
-    Pile::iterator i;
-    for (i = p.begin(); i != p.end(); i++)
-    {
-        cout << IdentificateursLabels[*i] << " ";
-    }
-}
-
-// Checks if a transition exists in the parsing table for a given non-terminal 'i' and terminal 'j'
+// Checks if a transition exists in the parsing table for a given state 'i' and lookahead 'j'
 bool Existe(Transitions &t, Identificateurs i, Identificateurs j)
 {
     return (t.find(i) != t.end()) and
@@ -80,7 +29,7 @@ const Rule rules[] = {
 };
 
 // Fonction principale pour l'analyseur Decalage-Reduction (LR)
-bool LL1AAP(const std::deque<SymbolValue> &mot,
+bool automaton(const std::deque<SymbolValue> &mot,
             Transitions &transitions,
             Identificateurs axiome)
 {
@@ -108,23 +57,19 @@ bool LL1AAP(const std::deque<SymbolValue> &mot,
             return false;
         }
 
-        Pile action = transitions[s][a];
+        Identificateurs target = transitions[s][a];
 
-        if (action.empty())
+        // ACCEPTATION
+        if (target == FIN || target == END)
         {
-            if (a == FIN) {
-                cout << "Succes : Mot reconnu" << endl;
-                if (!etat.valStack.empty()) {
-                    cout << "Resultat : " << etat.valStack.front() << endl;
-                }
-                return true;
-            }
-            return false;
+             cout << "Succes : Mot reconnu" << endl;
+             if (!etat.valStack.empty()) {
+                 cout << "Resultat : " << etat.valStack.front() << endl;
+             }
+             return true;
         }
 
-        Identificateurs target = action.front();
-
-        // DeCALAGE (SHIFT)
+        // DECALAGE (SHIFT)
         if (target >= S0 && target <= S9)
         {
             cout << "Decalage " << IdentificateursLabels[target] << endl;
@@ -133,7 +78,7 @@ bool LL1AAP(const std::deque<SymbolValue> &mot,
             etat.valStack.push_front(valA);
             etat.alire.pop_front();       
         }
-        // ReDUCTION (REDUCE)
+        // REDUCTION (REDUCE)
         else if (target >= R1 && target <= R5)
         {
             int ruleIndex = target - R1 + 1;
@@ -145,6 +90,11 @@ bool LL1AAP(const std::deque<SymbolValue> &mot,
             for (int i = 0; i < r.rhsLen; i++) {
                 ruleVals.push_front(etat.valStack.front());
                 etat.valStack.pop_front();
+
+                for(int i = 0; i < 2; i++) { // Pop de l'etat et du symbole
+                    if (etat.pile.empty()) return false;
+                    etat.pile.pop_front();
+                }
             }
 
             // Calcul semantique selon la regle
@@ -157,13 +107,6 @@ bool LL1AAP(const std::deque<SymbolValue> &mot,
                 case 5: res = ruleVals[0]; break; // E -> val
             }
 
-            // Depilement de 2 * rhsLen (paires etat/symbole)
-            for (int i = 0; i < 2 * r.rhsLen; ++i)
-            {
-                if (etat.pile.empty()) return false;
-                etat.pile.pop_front();
-            }
-
             // Regarder l'etat maintenant au sommet de la pile
             Identificateurs s_prev = etat.pile.front();
             
@@ -173,20 +116,17 @@ bool LL1AAP(const std::deque<SymbolValue> &mot,
                 return false;
             }
 
-            Identificateurs s_next = transitions[s_prev][r.lhs].front();
+            Identificateurs s_next = transitions[s_prev][r.lhs];
             cout << "Goto " << IdentificateursLabels[s_next] << endl;
             
             etat.pile.push_front(r.lhs);   
             etat.pile.push_front(s_next);  
             etat.valStack.push_front(res);
         }
-        else if (target == FIN || target == END)
+        else 
         {
-             cout << "Succes : Mot reconnu" << endl;
-             if (!etat.valStack.empty()) {
-                 cout << "Resultat : " << etat.valStack.front() << endl;
-             }
-             return true;
+            cout << "Action inconnue" << endl;
+            return false;
         }
         
         cout << "Pile : " << etat.pile << endl;

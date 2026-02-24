@@ -11,11 +11,6 @@ extern const std::string IdentificateursLabels[];
 
 typedef std::deque<Identificateurs> Pile;
 
-Pile mkPile(Identificateurs t1, Identificateurs t2, Identificateurs t3);
-Pile mkPile(Identificateurs t1, Identificateurs t2);
-Pile mkPile(Identificateurs t);
-Pile mkPile();
-
 struct SymbolValue {
     Identificateurs id;
     int value;
@@ -32,10 +27,19 @@ std::ostream &operator<<(std::ostream &os, const Pile &p);
 
 void AffichePile(Pile p);
 
-typedef std::map<Identificateurs, std::map<Identificateurs, Pile>> Transitions;
+inline std::ostream &operator<<(std::ostream &os, const Pile &p)
+{
+    for (Pile::const_iterator i = p.begin(); i != p.end(); i++)
+    {
+        os << IdentificateursLabels[*i] << " ";
+    }
+    return os;
+}
+
+typedef std::map<Identificateurs, std::map<Identificateurs, Identificateurs>> Transitions;
 
 bool Existe(Transitions &t, Identificateurs i, Identificateurs j);
 
-bool LL1AAP(const std::deque<SymbolValue> &mot, Transitions &transitions, Identificateurs axiome);
+bool automaton(const std::deque<SymbolValue> &mot, Transitions &transitions, Identificateurs axiome);
 
 #endif // ANALYSEUR_H

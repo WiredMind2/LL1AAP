@@ -6,7 +6,7 @@ Trans(S0, E, (S1));
 
 Trans(S1, PLUS, (S4));
 Trans(S1, MULT, (S5));
-Trans(S1, FIN, ()); // acceptation
+Trans(S1, FIN, (FIN)); // acceptation
 
 Trans(S2, INT, (S3));
 Trans(S2, OPENPAR, (S2));

@@ -5,14 +5,12 @@
 int main(void)
 {
    Transitions trans;
-   Pile epsilon;
-#define Trans(x, y, z) trans[Identificateurs(x)][Identificateurs(y)] = mkPile z
-#define ETrans(x, y) trans[Identificateurs(x)][Identificateurs(y)] = epsilon
+#define Trans(x, y, z) trans[Identificateurs(x)][Identificateurs(y)] = Identificateurs z
 #include "transitions.h"
 #undef Trans
    std::deque<SymbolValue> mot;
 
-   string chaine("(1+34)*123");
+   string chaine("(1+34)*123+5+3+4+(56*8+4*3+5+6*7*5)*9+4+((1+2)*3+4)*5");
 
    Lexer l(chaine);
 
@@ -25,7 +23,7 @@ int main(void)
       l.Avancer();
    }
 
-   if (LL1AAP(mot, trans, S0))
+   if (automaton(mot, trans, S0))
    {
       cout << "Succes : Expression valide" << endl;
    }
