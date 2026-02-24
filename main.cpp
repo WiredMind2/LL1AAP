@@ -25,7 +25,7 @@ int main(void)
       l.Avancer();
    }
 
-   if (LL1AAP(mot, trans, E_))
+   if (LL1AAP(mot, trans, S0))
    {
       cout << "Mot reconnu" << endl;
    }

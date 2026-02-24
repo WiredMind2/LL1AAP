@@ -5,9 +5,7 @@
 using namespace std;
 
 // Array of string labels for the different symbols (terminals and non-terminals) used in the grammar
-const string IdentificateursLabels[] = {
-    "(", ")", "+", "*", "nb", "$", "ERREUR", "E", "E'", "T", "id", "F", "T'"
-};
+// (Moved to symbole.h)
 
 // Helper functions to create a stack (Pile) from 1, 2, or 3 symbols.
 // These are typically used to push the right-hand side of a production rule onto the stack.
@@ -30,6 +28,11 @@ Pile mkPile(Identificateurs t)
 {
     Pile p;
     p.push_front(t);
+    return p;
+}
+Pile mkPile()
+{
+    Pile p;
     return p;
 }
 

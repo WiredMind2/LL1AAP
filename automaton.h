@@ -14,6 +14,7 @@ typedef std::deque<Identificateurs> Pile;
 Pile mkPile(Identificateurs t1, Identificateurs t2, Identificateurs t3);
 Pile mkPile(Identificateurs t1, Identificateurs t2);
 Pile mkPile(Identificateurs t);
+Pile mkPile();
 
 struct Etat
 {

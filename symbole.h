@@ -3,9 +3,9 @@
 #include <string>
 using namespace std;
 
-enum Identificateurs { OPENPAR, CLOSEPAR, PLUS, MULT, INT, FIN, ERREUR, E_, Ep_, T_, id_, F_, Tp_ };
+enum Identificateurs { OPENPAR, CLOSEPAR, PLUS, MULT, INT, FIN, ERREUR, E, EP, T, ID, F, TP, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, E_, END };
 
-const string Etiquettes[] = { "OPENPAR", "CLOSEPAR", "PLUS", "MULT", "INT", "FIN", "ERREUR", "E", "E'", "T", "id", "F", "T'" };
+extern const string IdentificateursLabels[];
 
 class Symbole {
    public:
