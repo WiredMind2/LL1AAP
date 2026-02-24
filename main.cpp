@@ -1,21 +1,6 @@
 #include <iostream>
 #include "lexer.h"
-
-int main(void)
-{
-   string chaine("(1+34)*123");
-
-   Lexer l(chaine);
-
-   Symbole *s;
-   while (*(s = l.Consulter()) != FIN)
-   {
-      s->Affiche();
-      cout << endl;
-      l.Avancer();
-   }
-   return 0;
-}
+#include "automaton.h"
 
 int main(void)
 {
@@ -36,7 +21,7 @@ int main(void)
    {
       s->Affiche();
       cout << endl;
-      mot.push_back(s);
+      mot.push_back((Identificateurs)(int)*s);
       l.Avancer();
    }
 
