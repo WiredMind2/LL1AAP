@@ -5,13 +5,21 @@ TARGET = main
 SRCS = main.cpp lexer.cpp symbole.cpp
 OBJS = $(SRCS:.cpp=.o)
 
-all: $(TARGET)
+ifeq ($(OS),Windows_NT)
+	RM = del /Q /F
+	TARGET_EXT = .exe
+else
+	RM = rm -f
+	TARGET_EXT =
+endif
 
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+all: $(TARGET)$(TARGET_EXT)
+
+$(TARGET)$(TARGET_EXT): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	del $(OBJS) $(TARGET) $(TARGET).exe
+	-$(RM) $(OBJS) $(TARGET)$(TARGET_EXT)
